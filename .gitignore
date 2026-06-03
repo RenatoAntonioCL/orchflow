@@ -8,7 +8,7 @@ build/
 out/
 *.tsbuildinfo
 
-# Tauri / Rust (app de escritorio)
+# Tauri / Rust (desktop app)
 apps/desktop/src-tauri/target/
 target/
 
@@ -20,7 +20,7 @@ target/
 runs/
 *.zip
 
-# Env y secrets
+# Env and secrets
 .env
 .env.*
 !.env.example
