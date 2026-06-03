@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Builds / output
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# Tauri / Rust (app de escritorio)
+apps/desktop/src-tauri/target/
+target/
+
+# Runtime data
+*.sqlite
+*.sqlite3
+*.db
+/tmp/orchflow-*/
+runs/
+*.zip
+
+# Env y secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Test / coverage
+coverage/
+.nyc_output/
