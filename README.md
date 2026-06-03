@@ -5,8 +5,8 @@
 > —with hierarchy, cross-reviews and defined roles— delivers a real
 > software project: functional, documented and ready to continue.
 
-![status](https://img.shields.io/badge/estado-planificaci%C3%B3n%20(pre--Fase%200)-orange)
-![license](https://img.shields.io/badge/licencia-MIT-blue)
+![status](https://img.shields.io/badge/status-planning%20(pre--Phase%200)-orange)
+![license](https://img.shields.io/badge/license-MIT-blue)
 ![plan](https://img.shields.io/badge/master%20plan-v2.1-success)
 
 > 📄 This project is documented in English. The full technical plan is in
