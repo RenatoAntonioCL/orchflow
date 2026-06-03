@@ -1,71 +1,71 @@
-# OrchFlow — Master Plan Completo
-# Versión 2.1 — Documento definitivo para implementación
+# OrchFlow — Complete Master Plan
+# Version 2.1 — Definitive document for implementation
 
-> Este documento define exactamente qué es OrchFlow, cómo está estructurado,
-> sus gates de calidad, estrategia de evolución, testing, métricas, memoria,
-> infraestructura y estructura de contribución.
-> Destinado a: Claude Code / implementación técnica y referencia continua del proyecto.
-
----
-
-## ÍNDICE
-
-1. Visión del producto
-2. Jerarquía de agentes
-3. Arquitectura del sistema
-4. Contratos de datos
-5. Gates de calidad entre fases
-6. Evolución de agentes — mejora continua
-7. Estrategia de testing
-8. Métricas de funcionamiento
-9. Modelo de memoria y contexto
-10. Infraestructura — modos de despliegue y qué va en qué versión
-11. Sandbox — validación atada al nivel de output
-12. Sistema de revisión
-13. CLI + App de escritorio — interfaz y paridad
-14. GUI — pantallas
-15. Distribución e instaladores
-16. Economía de tokens
-17. Fases de implementación
-18. Estructura para contribución continua
-19. Decisiones técnicas clave
-20. Lo que OrchFlow no hace (scope explícito)
-21. Instrucciones para Claude Code
+> This document defines exactly what OrchFlow is, how it is structured,
+> its quality gates, evolution strategy, testing, metrics, memory,
+> infrastructure and contribution structure.
+> Intended for: Claude Code / technical implementation and ongoing project reference.
 
 ---
 
-## 1. VISIÓN DEL PRODUCTO
+## TABLE OF CONTENTS
 
-OrchFlow es una **agencia de desarrollo de software autónoma** impulsada por LLMs.
-
-Dado un requerimiento en lenguaje natural, OrchFlow coordina un equipo de agentes
-especializados con jerarquía, revisiones cruzadas y roles definidos para entregar
-un proyecto de software real — funcional, documentado y listo para continuar.
-
-**No es**: un generador de scaffolding, un chatbot, ni un wrapper de LangChain.
-
-**Es**: un sistema donde cada agente tiene un rol, responsabilidades, criterios de
-aceptación, y puede rechazar o pedir revisión del trabajo de otros agentes.
-
-### Output configurable por el usuario
-
-El usuario elige el nivel de completitud antes de ejecutar:
-
-| Nivel | Nombre       | Descripción                                                        | Tiempo est. |
-|-------|--------------|--------------------------------------------------------------------|-------------|
-| 1     | `blueprint`  | Arquitectura, ADRs, estructura de carpetas, contratos de API       | < 1 min     |
-| 2     | `scaffold`   | Nivel 1 + código base funcional, configs, CI/CD, Dockerfile        | 2–4 min     |
-| 3     | `mvp`        | Nivel 2 + auth, DB con migraciones, tests, README completo         | 5–10 min    |
-| 4     | `deliverable`| Nivel 3 + validaciones, error handling, logging, deploy-ready      | 10–20 min   |
+1. Product Vision
+2. Agent Hierarchy
+3. System Architecture
+4. Data Contracts
+5. Quality Gates Between Phases
+6. Agent Evolution — Continuous Improvement
+7. Testing Strategy
+8. Performance Metrics
+9. Memory and Context Model
+10. Infrastructure — Deployment Modes and What Goes in Which Version
+11. Sandbox — Validation Tied to Output Level
+12. Review System
+13. CLI + Desktop App — Interface and Parity
+14. GUI — Screens
+15. Distribution and Installers
+16. Token Economy
+17. Implementation Phases
+18. Structure for Continuous Contribution
+19. Key Technical Decisions
+20. What OrchFlow Does Not Do (Explicit Scope)
+21. Instructions for Claude Code
 
 ---
 
-## 2. JERARQUÍA DE AGENTES
+## 1. PRODUCT VISION
+
+OrchFlow is an **autonomous software development agency** powered by LLMs.
+
+Given a requirement in natural language, OrchFlow coordinates a team of specialized
+agents with hierarchy, cross-reviews and defined roles to deliver a real software
+project — functional, documented and ready to continue.
+
+**It is not**: a scaffolding generator, a chatbot, or a LangChain wrapper.
+
+**It is**: a system where each agent has a role, responsibilities, acceptance criteria,
+and can reject or request revision of other agents' work.
+
+### User-configurable output
+
+The user chooses the completeness level before running:
+
+| Level | Name         | Description                                                          | Est. time   |
+|-------|--------------|----------------------------------------------------------------------|-------------|
+| 1     | `blueprint`  | Architecture, ADRs, folder structure, API contracts                  | < 1 min     |
+| 2     | `scaffold`   | Level 1 + functional base code, configs, CI/CD, Dockerfile           | 2–4 min     |
+| 3     | `mvp`        | Level 2 + auth, DB with migrations, tests, full README               | 5–10 min    |
+| 4     | `deliverable`| Level 3 + validations, error handling, logging, deploy-ready         | 10–20 min   |
+
+---
+
+## 2. AGENT HIERARCHY
 
 ```
 ┌─────────────────────────────────────────┐
-│           CHIEF ARCHITECT               │  ← Recibe el brief, define la visión
-│     (Orchestrator / Evaluador)          │     técnica, asigna trabajo
+│           CHIEF ARCHITECT               │  ← Receives the brief, defines the
+│     (Orchestrator / Evaluator)          │     technical vision, assigns work
 └────────────────┬────────────────────────┘
                  │
     ┌────────────┼─────────────┐
@@ -85,192 +85,192 @@ El usuario elige el nivel de completitud antes de ejecutar:
     └─────┬──────┘
           ▼
 ┌────────────────────┐
-│    QA / Reviewer   │  ← Revisa outputs de todos los devs
+│    QA / Reviewer   │  ← Reviews output from all devs
 └────────────────────┘
           │
           ▼
 ┌────────────────────┐
-│    TECH WRITER     │  ← Documenta el proyecto completo al final
+│    TECH WRITER     │  ← Documents the complete project at the end
 └────────────────────┘
 ```
 
-### Roles y responsabilidades
+### Roles and responsibilities
 
 **Chief Architect (Orchestrator)**
-- Recibe el brief del usuario
-- Produce `ProjectBlueprint` (visión técnica, stack, nivel de output)
-- Asigna tareas a Tech Leads con contexto específico
-- Recibe los outputs finales y hace el ensamblado
-- Puede rechazar un output y re-asignar con feedback
+- Receives the user's brief
+- Produces `ProjectBlueprint` (technical vision, stack, output level)
+- Assigns tasks to Tech Leads with specific context
+- Receives final outputs and performs assembly
+- Can reject an output and re-assign with feedback
 
 **Tech Lead (Backend / Frontend / DevOps)**
-- Recibe el blueprint del Chief Architect
-- Define la arquitectura específica de su área
-- Delega implementación al Developer de su área
-- Revisa el output del Developer antes de pasarlo al QA
-- Puede pedir re-trabajo al Developer (máx. 2 iteraciones)
+- Receives the blueprint from the Chief Architect
+- Defines the architecture specific to their area
+- Delegates implementation to the Developer in their area
+- Reviews the Developer's output before passing it to QA
+- Can request rework from the Developer (max. 2 iterations)
 
 **Developer (Backend / Frontend)**
-- Recibe especificaciones del Tech Lead
-- Genera el código real (archivos concretos)
-- Entrega output al Tech Lead para revisión
+- Receives specifications from the Tech Lead
+- Generates real code (concrete files)
+- Delivers output to the Tech Lead for review
 
 **CI/CD + Infra Agent**
-- Trabaja en paralelo con Backend Dev
-- Genera Dockerfile, docker-compose, workflows de GitHub Actions
-- Se sincroniza con el output del Backend para usar los mismos comandos
+- Works in parallel with the Backend Dev
+- Generates Dockerfile, docker-compose, GitHub Actions workflows
+- Synchronizes with the Backend output to use the same commands
 
 **QA / Reviewer Agent**
-- Recibe todos los outputs de los Developers
-- Verifica consistencia cruzada
-- Verifica que el proyecto compila (ejecuta comandos reales en el sandbox)
-- Genera reporte de issues — los issues críticos bloquean la entrega
+- Receives all outputs from Developers
+- Verifies cross-consistency
+- Verifies that the project compiles (runs real commands in the sandbox)
+- Generates an issue report — critical issues block delivery
 
 **Tech Writer**
-- Recibe el proyecto completo
-- Genera README.md, CONTRIBUTING.md, documentación de API
-- Es el último agente en ejecutar
+- Receives the complete project
+- Generates README.md, CONTRIBUTING.md, API documentation
+- Is the last agent to execute
 
-### Lista canónica de agentes (única fuente de verdad)
+### Canonical agent list (single source of truth)
 
-Estos son los únicos agentes que existen en v1. Cualquier otra mención en este
-documento (ej: "Core Dev", "Security Agent", "testing agent") es un alias o
-trabajo futuro y debe normalizarse a esta tabla:
+These are the only agents that exist in v1. Any other mention in this
+document (e.g.: "Core Dev", "Security Agent", "testing agent") is an alias or
+future work and must be normalized to this table:
 
-| AgentId            | Rol             | Alias / notas                          |
-|--------------------|-----------------|----------------------------------------|
-| `chief-architect`  | Orchestrator    | —                                      |
-| `backend-tl`       | Tech Lead       | —                                      |
-| `frontend-tl`      | Tech Lead       | —                                      |
-| `devops`           | DevOps          | "CI/CD + Infra agent"                  |
-| `backend-dev`      | Developer       | NUNCA "Core Dev" — usar `backend-dev`  |
-| `frontend-dev`     | Developer       | —                                      |
-| `qa`               | QA / Reviewer   | absorbe checks de testing y seguridad  |
-| `tech-writer`      | Tech Writer     | —                                      |
+| AgentId            | Role            | Alias / notes                              |
+|--------------------|-----------------|--------------------------------------------|
+| `chief-architect`  | Orchestrator    | —                                          |
+| `backend-tl`       | Tech Lead       | —                                          |
+| `frontend-tl`      | Tech Lead       | —                                          |
+| `devops`           | DevOps          | "CI/CD + Infra agent"                      |
+| `backend-dev`      | Developer       | NEVER "Core Dev" — use `backend-dev`       |
+| `frontend-dev`     | Developer       | —                                          |
+| `qa`               | QA / Reviewer   | absorbs testing and security checks        |
+| `tech-writer`      | Tech Writer     | —                                          |
 
-Un `security-agent` dedicado es trabajo de v2; en v1 los chequeos de seguridad
-(dependencias, endpoints expuestos) los hace el agente `qa`.
+A dedicated `security-agent` is v2 work; in v1 security checks
+(dependencies, exposed endpoints) are handled by the `qa` agent.
 
-> **Nota de diseño — la capa Tech Lead se mide antes de darse por sentada.**
-> Cada Tech Lead que delega y luego revisa son 2+ llamadas LLM extra. Con los
-> targets de `< $0.50` y `< 5 min` (§8), esa capa puede no pagar su costo.
-> Fase 1 se implementa primero SIN Tech Leads (Architect → Dev → QA); los Tech
-> Leads se incorporan solo si las métricas muestran que mejoran `coherence` más
-> de lo que cuestan en latencia y tokens. Mismo principio que la infra (§10):
-> un componente entra cuando resuelve un problema que ya existe, no uno hipotético.
+> **Design note — the Tech Lead layer is measured before being taken for granted.**
+> Each Tech Lead that delegates and then reviews adds 2+ extra LLM calls. With the
+> `< $0.50` and `< 5 min` targets (§8), that layer may not justify its cost.
+> Phase 1 is implemented first WITHOUT Tech Leads (Architect → Dev → QA); Tech
+> Leads are added only if metrics show they improve `coherence` more than they
+> cost in latency and tokens. Same principle as infrastructure (§10):
+> a component is added when it solves a problem that already exists, not a hypothetical one.
 
 ---
 
-## 3. ARQUITECTURA DEL SISTEMA
+## 3. SYSTEM ARCHITECTURE
 
-### 3.1 Stack tecnológico de OrchFlow
+### 3.1 OrchFlow Technology Stack
 
-**Core (engine compartido por CLI y GUI)**
+**Core (engine shared by CLI and GUI)**
 - Runtime: Node.js 20 + TypeScript 5
-- LLM: Anthropic Claude API — id de modelo pineado con fecha (ej: `claude-sonnet-4-6`), nunca alias móvil (ver §6, model pinning); prompt caching de system prompts (§16)
-- Queue: en memoria en modo embedded; Bull + Redis solo en modo server
-- Storage: SQLite vía Drizzle ORM (runs, métricas, historial de agentes)
-- Sandbox: dockerode (Docker SDK para Node.js), atado al nivel de output (§11)
-- API HTTP (Fastify): solo en modo server (opcional, §10)
+- LLM: Anthropic Claude API — model id pinned with date (e.g.: `claude-sonnet-4-6`), never a floating alias (see §6, model pinning); system prompt caching (§16)
+- Queue: in-memory in embedded mode; Bull + Redis in server mode only
+- Storage: SQLite via Drizzle ORM (runs, metrics, agent history)
+- Sandbox: dockerode (Docker SDK for Node.js), tied to output level (§11)
+- HTTP API (Fastify): server mode only (optional, §10)
 
-**GUI / App de escritorio (Tauri)**
-- Shell: Tauri (Rust) — instaladores chicos (~5–10 MB), usa el webview del sistema
+**GUI / Desktop App (Tauri)**
+- Shell: Tauri (Rust) — small installers (~5–10 MB), uses the system webview
 - UI: React 19 + TypeScript + Tailwind + Zustand
-- Engine: `core` (Node/TS) corre como **sidecar** lanzado por Tauri
-- Realtime: eventos del sidecar → UI (IPC); SSE solo en modo servidor
-- Elegido por footprint mínimo (ver §16, economía de tokens y espacio)
+- Engine: `core` (Node/TS) runs as a **sidecar** launched by Tauri
+- Realtime: sidecar events → UI (IPC); SSE in server mode only
+- Chosen for minimal footprint (see §16, token and space economy)
 
 **CLI**
-- Framework: oclif (CLI framework production-grade)
-- Cliente fino sobre `core` — misma lógica que la GUI (paridad por construcción)
+- Framework: oclif (production-grade CLI framework)
+- Thin client over `core` — same logic as the GUI (parity by construction)
 
-**Modos de despliegue**
-- **Embedded** (default): engine in-process, sin Redis ni servidor. Es lo que usan
-  CLI y GUI. "Download & run" sin levantar nada (salvo Docker si el nivel lo pide).
-- **Server** (opcional/avanzado): API Fastify + Bull + Redis + SSE, para uso
-  repetido o multi-job. No es requisito para usar OrchFlow.
-- Docker se usa para el sandbox de validación, atado al nivel de output (ver §11).
+**Deployment modes**
+- **Embedded** (default): in-process engine, no Redis or server. Used by
+  CLI and GUI. "Download & run" without starting anything (except Docker if the level requires it).
+- **Server** (optional/advanced): Fastify API + Bull + Redis + SSE, for
+  repeated or multi-job use. Not required to use OrchFlow.
+- Docker is used for the validation sandbox, tied to the output level (see §11).
 
-### 3.2 Estructura de monorepo
+### 3.2 Monorepo Structure
 
 ```
 orchflow/
 ├── packages/
-│   ├── core/                    # Lógica central compartida
+│   ├── core/                    # Shared core logic
 │   │   ├── src/
-│   │   │   ├── orchestrator/    # Chief Architect + coordinación
-│   │   │   ├── agents/          # Todos los agentes
+│   │   │   ├── orchestrator/    # Chief Architect + coordination
+│   │   │   ├── agents/          # All agents
 │   │   │   │   └── backend-dev/
 │   │   │   │       ├── v1.prompt.ts
 │   │   │   │       ├── v2.prompt.ts
 │   │   │   │       ├── active.ts
 │   │   │   │       └── CHANGELOG.md
-│   │   │   ├── evaluator/       # Análisis del brief
+│   │   │   ├── evaluator/       # Brief analysis
 │   │   │   ├── sandbox/         # Docker sandbox manager
-│   │   │   ├── assembler/       # Ensamblado del output final
-│   │   │   ├── metrics/         # Recolección y persistencia de métricas
-│   │   │   └── types/           # Interfaces y tipos compartidos
+│   │   │   ├── assembler/       # Final output assembly
+│   │   │   ├── metrics/         # Metrics collection and persistence
+│   │   │   └── types/           # Shared interfaces and types
 │   │   └── package.json
-│   │   └── actions/         # API interna que consumen CLI y GUI (paridad)
-│   ├── cli/                     # CLI con oclif — cliente fino sobre core
-│   ├── ui/                      # Componentes React compartidos por la GUI
-│   └── server/                  # OPCIONAL: API Fastify + Bull + Redis (modo server)
+│   │   └── actions/         # Internal API consumed by CLI and GUI (parity)
+│   ├── cli/                     # CLI with oclif — thin client over core
+│   ├── ui/                      # React components shared by the GUI
+│   └── server/                  # OPTIONAL: Fastify API + Bull + Redis (server mode)
 ├── apps/
-│   └── desktop/                 # App Tauri (shell Rust + webview React + core sidecar)
+│   └── desktop/                 # Tauri app (Rust shell + React webview + core sidecar)
 ├── docker/
-│   ├── Dockerfile.sandbox       # imagen de validación (con mirror de paquetes)
-│   ├── Dockerfile.server        # solo para modo server
-│   └── docker-compose.yml       # solo para modo server
+│   ├── Dockerfile.sandbox       # validation image (with package mirror)
+│   ├── Dockerfile.server        # server mode only
+│   └── docker-compose.yml       # server mode only
 ├── docs/
 ├── pnpm-workspace.yaml
 └── package.json
 ```
 
-`packages/core/src/actions/` es la **única superficie** que invocan tanto el CLI
-como la GUI (`new`, `plan`, `history`, `metrics`, `evalCompare`). Una acción nueva
-se agrega aquí una vez y queda disponible en ambos. Si una acción existe solo en un
-adapter, es un bug de paridad.
+`packages/core/src/actions/` is the **only surface** invoked by both the CLI
+and the GUI (`new`, `plan`, `history`, `metrics`, `evalCompare`). A new action
+is added here once and becomes available in both. If an action exists only in one
+adapter, it is a parity bug.
 
-### 3.3 Flujo de una ejecución
+### 3.3 Execution Flow
 
 ```
-1. Input (CLI o GUI)
+1. Input (CLI or GUI)
    └── brief: string
    └── outputLevel: 'blueprint' | 'scaffold' | 'mvp' | 'deliverable'
 
-2. API recibe el job → encola en Bull → responde con jobId
+2. API receives the job → enqueues in Bull → responds with jobId
 
-3. Worker toma el job:
-   a. Chief Architect evalúa el brief → ProjectBlueprint
-   b. Chief Architect abre sandbox Docker para el run
-   c. Ejecuta agentes en orden (con paralelismo donde aplica):
-      ├── [paralelo] Backend TL + Frontend TL + DevOps Agent
-      ├── [paralelo] Backend Dev + Frontend Dev
-      │     - Frontend Dev trabaja contra el CONTRATO DE API del Backend TL
-      │       (endpoints y tipos), NO contra el output del Backend Dev. Por eso
-      │       pueden correr en paralelo. Si el contrato del TL y lo que produce
-      │       el Dev divergen, lo concilia el QA.
-      ├── QA Reviewer (después de todos los devs)
-      └── Tech Writer (último)
-   d. Assembler consolida todos los archivos en el sandbox
-   e. QA ejecuta validaciones reales (npm install, build, lint)
-   f. Output final: ZIP del proyecto
+3. Worker picks up the job:
+   a. Chief Architect evaluates the brief → ProjectBlueprint
+   b. Chief Architect opens a Docker sandbox for the run
+   c. Runs agents in order (with parallelism where applicable):
+      ├── [parallel] Backend TL + Frontend TL + DevOps Agent
+      ├── [parallel] Backend Dev + Frontend Dev
+      │     - Frontend Dev works against the Backend TL's API CONTRACT
+      │       (endpoints and types), NOT against Backend Dev's output. That is
+      │       why they can run in parallel. If the TL's contract and what the
+      │       Dev produces diverge, QA reconciles it.
+      ├── QA Reviewer (after all devs)
+      └── Tech Writer (last)
+   d. Assembler consolidates all files in the sandbox
+   e. QA runs real validations (npm install, build, lint)
+   f. Final output: project ZIP
 
-   Checkpointing: el estado del run (outputs de cada agente completado) se
-   persiste en SQLite a medida que avanza. Si el job falla y Bull lo reintenta,
-   se reanuda desde el último agente completado — NO se re-ejecutan agentes ya
-   exitosos. Sin esto, cada retry duplicaría el costo de tokens del run entero.
+   Checkpointing: the run state (outputs of each completed agent) is
+   persisted in SQLite as it progresses. If the job fails and Bull retries it,
+   it resumes from the last completed agent — already-successful agents are NOT
+   re-executed. Without this, each retry would duplicate the token cost of the entire run.
 
-4. Metadata del run guardada en SQLite
+4. Run metadata saved in SQLite
 
-5. Métricas registradas (build success, scores, latencia, costo)
+5. Metrics recorded (build success, scores, latency, cost)
 ```
 
 ---
 
-## 4. CONTRATOS DE DATOS
+## 4. DATA CONTRACTS
 
-### Tipos base
+### Base types
 
 ```typescript
 type AgentId =
@@ -283,7 +283,7 @@ type AgentRole =
 type OutputLevel = 'blueprint' | 'scaffold' | 'mvp' | 'deliverable';
 ```
 
-Todos los contratos llevan `_version` para permitir migraciones futuras.
+All contracts carry `_version` to allow future migrations.
 
 ### ProjectBlueprint
 
@@ -334,7 +334,7 @@ interface AgentOutput {
   agentId: AgentId;
   role: AgentRole;
   status: 'success' | 'failed' | 'rejected';
-  promptVersion: string;       // ej: 'v2' — para correlacionar con métricas
+  promptVersion: string;       // e.g.: 'v2' — to correlate with metrics
   files: GeneratedFile[];
   decisions: string[];
   notes: string;
@@ -376,14 +376,14 @@ interface RunResult {
     checks: QACheck[];
     criticalIssues: string[];
     warnings: string[];
-    // Vocabulario unificado de scores (ver §6 y §8).
-    // correctness, completeness y coherence son DETERMINISTAS (build/parser);
-    // quality es la única dimensión evaluada por LLM-as-a-Judge.
+    // Unified score vocabulary (see §6 and §8).
+    // correctness, completeness and coherence are DETERMINISTIC (build/parser);
+    // quality is the only dimension evaluated by LLM-as-a-Judge.
     scores: {
-      correctness: number;    // 0–1  determinista: el build/tsc pasa
-      coherence: number;      // 0–1  determinista: refs cruzadas válidas (= "consistency" de §8)
-      completeness: number;   // 0–1  determinista: archivos presentes / esperados
-      quality: number;        // 0–1  LLM-as-a-Judge: buenas prácticas del stack
+      correctness: number;    // 0–1  deterministic: build/tsc passes
+      coherence: number;      // 0–1  deterministic: valid cross-references (= "consistency" from §8)
+      completeness: number;   // 0–1  deterministic: files present / expected
+      quality: number;        // 0–1  LLM-as-a-Judge: stack best practices
     };
   };
 
@@ -393,165 +393,165 @@ interface RunResult {
 
 ---
 
-## 5. GATES DE CALIDAD ENTRE FASES
+## 5. QUALITY GATES BETWEEN PHASES
 
-Un gate es una **pregunta binaria con evidencia ejecutable**.
-Si no puedes responder "sí" con un comando o una prueba, no pasa.
+A gate is a **binary question with executable evidence**.
+If you cannot answer "yes" with a command or a test, it does not pass.
 
 ### Gate 0 → 1
-**Pregunta**: ¿`pnpm test` pasa Y hay archivos reales generados en `/tmp/orchflow-test/`?
+**Question**: Does `pnpm test` pass AND are real files generated in `/tmp/orchflow-test/`?
 
 ```bash
-# Evidencia requerida:
-pnpm test                          # todos los tests en verde
-ls /tmp/orchflow-test/package.json # archivo real existe
+# Required evidence:
+pnpm test                          # all tests green
+ls /tmp/orchflow-test/package.json # real file exists
 ```
 
-No vale: "el código se ve bien" / "creo que funciona".
+Not acceptable: "the code looks good" / "I think it works".
 
 ### Gate 1 → 2
-**Pregunta**: ¿El ZIP generado hace `npm install && npm run dev` sin errores en un entorno limpio?
+**Question**: Does the generated ZIP run `npm install && npm run dev` without errors in a clean environment?
 
 ```bash
-# Evidencia requerida:
+# Required evidence:
 unzip output.zip -d /tmp/test-project
 cd /tmp/test-project
 npm install   # exit code 0
 npm run build # exit code 0
 ```
 
-No vale: que los archivos existan pero no corran.
+Not acceptable: files existing but not running.
 
 ### Gate 2 → 3
-**Pregunta**: ¿El QA Agent detecta al menos 1 inconsistencia real en un proyecto con errores plantados deliberadamente?
+**Question**: Does the QA Agent detect at least 1 real inconsistency in a project with deliberately planted errors?
 
 ```bash
-# Evidencia requerida:
+# Required evidence:
 pnpm test:qa --fixture broken-project
-# El reporte debe listar el error plantado como issue crítico
+# The report must list the planted error as a critical issue
 ```
 
-No vale: que el QA corra sin errores pero no detecte nada.
+Not acceptable: QA running without errors but detecting nothing.
 
 ### Gate 3 → 4
-**Pregunta**: ¿El mismo proyecto se puede generar por CLI y por la app de escritorio,
-con idéntico output, sin levantar Redis?
+**Question**: Can the same project be generated via CLI and via the desktop app,
+with identical output, without starting Redis?
 
 ```bash
-# Evidencia requerida (modo embedded):
-npx orchflow new "..." --level scaffold -o /tmp/cli-run   # ZIP válido, sin Redis
-# y el MISMO brief desde la app de escritorio → genera el mismo proyecto
-# Flujo completo en ambos: brief → generación → ZIP válido
+# Required evidence (embedded mode):
+npx orchflow new "..." --level scaffold -o /tmp/cli-run   # valid ZIP, no Redis
+# and the SAME brief from the desktop app → generates the same project
+# Full flow in both: brief → generation → valid ZIP
 ```
 
-No vale: que la UI exista pero el flujo completo falle, o que CLI y GUI difieran.
+Not acceptable: UI existing but the full flow failing, or CLI and GUI differing.
 
 ### Gate 4 → 5
-**Pregunta**: ¿Los 4 niveles producen outputs distintos y coherentes con su definición?
+**Question**: Do all 4 levels produce distinct outputs coherent with their definition?
 
 ```bash
-# Evidencia requerida:
-# blueprint: solo docs/arquitectura, sin código
-# scaffold: código base que compila
-# mvp: incluye auth y DB
-# deliverable: incluye tests y error handling
-pnpm test:levels # suite específica que verifica cada nivel
+# Required evidence:
+# blueprint: only docs/architecture, no code
+# scaffold: base code that compiles
+# mvp: includes auth and DB
+# deliverable: includes tests and error handling
+pnpm test:levels # specific suite that verifies each level
 ```
 
-No vale: que todos los niveles generen lo mismo con distinto nombre.
+Not acceptable: all levels generating the same thing under different names.
 
 ### Gate 5 → release
-**Pregunta**: ¿El sistema de evolución rechaza automáticamente un prompt peor
-y promueve uno mejor, sobre el benchmark set, con criterio estadístico?
+**Question**: Does the evolution system automatically reject a worse prompt
+and promote a better one, over the benchmark set, with a statistical criterion?
 
 ```bash
-# Evidencia requerida:
+# Required evidence:
 pnpm eval:regression --agent backend-dev --version vTEST --baseline active
-# Plantar deliberadamente un vTEST peor → debe quedar RECHAZADO.
-# Plantar un vTEST mejor (mejora > umbral y fuera del desvío) → debe PROMOVERSE.
+# Deliberately plant a worse vTEST → it must be REJECTED.
+# Plant a better vTEST (improvement > threshold and outside the deviation) → it must be PROMOTED.
 ```
 
-No vale: que el comando corra pero promueva/rechace sin mirar la varianza.
+Not acceptable: the command running but promoting/rejecting without checking variance.
 
 ---
 
-## 6. EVOLUCIÓN DE AGENTES — MEJORA CONTINUA
+## 6. AGENT EVOLUTION — CONTINUOUS IMPROVEMENT
 
-### Capa 1 — Versionado de prompts
+### Layer 1 — Prompt Versioning
 
-Cada prompt vive en un archivo versionado. Cambiar un prompt = nuevo archivo, nunca sobrescribir.
+Each prompt lives in a versioned file. Changing a prompt = new file, never overwrite.
 
 ```
 packages/core/src/agents/backend-dev/
-  v1.prompt.ts     ← versión original
-  v2.prompt.ts     ← primera iteración
-  active.ts        ← re-exporta v2 como default
-  CHANGELOG.md     ← historial con scores por versión
+  v1.prompt.ts     ← original version
+  v2.prompt.ts     ← first iteration
+  active.ts        ← re-exports v2 as default
+  CHANGELOG.md     ← history with scores per version
 ```
 
-`CHANGELOG.md` de un agente:
+Agent `CHANGELOG.md`:
 ```markdown
 ## v2 (2025-07-15)
-- Mejorado: instrucción de estructura de carpetas más específica
+- Improved: more specific folder structure instruction
 - Build success rate: 91% (+12% vs v1)
 - Coherence score: 0.88 (+0.09 vs v1)
 
 ## v1 (2025-06-01)
-- Versión inicial
+- Initial version
 - Build success rate: 79%
 - Coherence score: 0.79
 ```
 
-### Capa 2 — Scoring (determinista primero, juez LLM solo donde hace falta)
+### Layer 2 — Scoring (deterministic first, LLM judge only where needed)
 
-Después de cada run se puntúa el output en 4 dimensiones. **Tres de las cuatro
-son deterministas** — las mide el sandbox/parser, NO un LLM. Usar un juez para
-validez sintáctica sería más caro y menos confiable que correr el build.
+After each run the output is scored across 4 dimensions. **Three of the four
+are deterministic** — measured by the sandbox/parser, NOT an LLM. Using a judge for
+syntactic validity would be more expensive and less reliable than running the build.
 
-| Dimensión    | Cómo se mide                                          | Tipo           | Target |
-|--------------|-------------------------------------------------------|----------------|--------|
-| Correctness  | `tsc`/`build` pasa en el sandbox                      | DETERMINISTA   | > 0.95 |
-| Completeness | archivos presentes / archivos esperados              | DETERMINISTA   | > 0.85 |
-| Coherence    | refs cruzadas válidas (imports, endpoints, env vars) | DETERMINISTA   | > 0.88 |
-| Quality      | sigue buenas prácticas del stack elegido             | LLM-as-a-Judge | > 0.80 |
+| Dimension    | How it is measured                                      | Type           | Target |
+|--------------|---------------------------------------------------------|----------------|--------|
+| Correctness  | `tsc`/`build` passes in the sandbox                     | DETERMINISTIC  | > 0.95 |
+| Completeness | files present / expected files                          | DETERMINISTIC  | > 0.85 |
+| Coherence    | valid cross-references (imports, endpoints, env vars)   | DETERMINISTIC  | > 0.88 |
+| Quality      | follows best practices for the chosen stack             | LLM-as-a-Judge | > 0.80 |
 
-Solo `Quality` requiere el agente juez LLM. Los chequeos deterministas reutilizan
-exactamente la lógica del QA Agent (§12) — una sola implementación, dos consumidores.
+Only `Quality` requires the LLM judge agent. Deterministic checks reuse
+exactly the same logic as the QA Agent (§12) — one implementation, two consumers.
 
-Los scores se guardan en SQLite asociados a `(agentId, promptVersion, projectType)`
-y son la **única fuente de verdad**. El bloque de scores del `CHANGELOG.md` de cada
-agente se GENERA desde SQLite (no se escribe a mano) para que no diverjan.
+Scores are stored in SQLite associated with `(agentId, promptVersion, projectType)`
+and are the **single source of truth**. The scores block in each agent's `CHANGELOG.md`
+is GENERATED from SQLite (not written by hand) so they never diverge.
 
-### Capa 3 — Experimentos A/B
+### Layer 3 — A/B Experiments
 
-Cuando hay dos versiones de un prompt:
-1. Correr ambas sobre el benchmark set, con **k=3 corridas por brief** (seeds fijas)
-   para medir varianza, no una sola muestra.
-2. Comparar **media ± desvío estándar** por dimensión, no solo el promedio.
-3. La nueva versión se vuelve `active` solo si su mejora supera el 5% **y** el
-   intervalo no se solapa con el de la baseline (la mejora está fuera del ruido).
-4. Validar contra el **held-out set** antes de promover: si mejora en el benchmark
-   pero no en el held-out, es overfitting → se descarta.
-5. Si no pasa: se documenta en el CHANGELOG y se descarta.
+When two versions of a prompt exist:
+1. Run both over the benchmark set, with **k=3 runs per brief** (fixed seeds)
+   to measure variance, not a single sample.
+2. Compare **mean ± standard deviation** per dimension, not just the average.
+3. The new version becomes `active` only if its improvement exceeds 5% **and** the
+   interval does not overlap with the baseline's (the improvement is outside the noise).
+4. Validate against the **held-out set** before promoting: if it improves on the benchmark
+   but not on the held-out, it is overfitting → discard.
+5. If it does not pass: document in the CHANGELOG and discard.
 
-**Model pinning:** el id del modelo se fija con fecha (ej: `claude-sonnet-4-6`),
-nunca un alias móvil. Si el modelo cambia, los scores históricos dejan de ser
-comparables y hay que re-baselinear — el benchmark inmutable solo tiene sentido
-con modelo fijo.
+**Model pinning:** the model id is pinned with a date (e.g.: `claude-sonnet-4-6`),
+never a floating alias. If the model changes, historical scores are no longer
+comparable and re-baselining is required — an immutable benchmark only makes sense
+with a fixed model.
 
-El benchmark set es `packages/core/src/benchmarks/briefs.ts` con 10 briefs
-representativos. Es inmutable — siempre los mismos para comparar de forma justa.
-Además hay un **held-out set** (`briefs.holdout.ts`, otros 5 briefs) que NUNCA se
-usa para decidir `active`, solo para detectar overfitting a los 10 del benchmark.
+The benchmark set is `packages/core/src/benchmarks/briefs.ts` with 10 representative
+briefs. It is immutable — always the same for fair comparison.
+There is also a **held-out set** (`briefs.holdout.ts`, another 5 briefs) that is NEVER
+used to decide `active`, only to detect overfitting on the 10 benchmark briefs.
 
 ---
 
-## 7. ESTRATEGIA DE TESTING
+## 7. TESTING STRATEGY
 
-### Nivel 1 — Tests de estructura (rápidos, sin API)
+### Level 1 — Structure Tests (fast, no API)
 
-Verifican que el output tiene la forma correcta independientemente del contenido.
-Sin llamadas LLM — usan outputs mockeados.
+Verify that the output has the correct shape regardless of content.
+No LLM calls — uses mocked outputs.
 
 ```typescript
 describe('BackendDevAgent output structure', () => {
@@ -566,10 +566,10 @@ describe('BackendDevAgent output structure', () => {
 })
 ```
 
-### Nivel 2 — Tests de contrato (rápidos, sin API)
+### Level 2 — Contract Tests (fast, no API)
 
-Verifican invariantes de negocio: ciertos archivos siempre deben existir
-para ciertos tipos de proyecto.
+Verify business invariants: certain files must always exist
+for certain project types.
 
 ```typescript
 describe('Node.js project contracts', () => {
@@ -582,73 +582,73 @@ describe('Node.js project contracts', () => {
 })
 ```
 
-### Nivel 3 — Tests de compilación (sandbox, bajo demanda)
+### Level 3 — Compilation Tests (sandbox, on demand)
 
-El código generado realmente compila. Lo ejecuta el QA Agent en el sandbox Docker.
+The generated code actually compiles. Run by the QA Agent in the Docker sandbox.
 
 ```bash
-# Dentro del sandbox:
+# Inside the sandbox:
 npm install --silent && npm run build
-# Exit code 0 = test pasa
-# Exit code != 0 = issue crítico registrado
+# Exit code 0 = test passes
+# Exit code != 0 = critical issue recorded
 ```
 
-Corren: al ejecutar un run real, y en el Gate 1→2.
+When they run: on a real run execution, and at Gate 1→2.
 
-### Nivel 4 — Tests de regresión de calidad (con API, en releases)
+### Level 4 — Quality Regression Tests (with API, on releases)
 
-Después de cada cambio de prompt, correr el benchmark set completo y comparar
-scores con la versión anterior. Si el score promedio baja más de 5%, el cambio
-no entra.
+After each prompt change, run the full benchmark set and compare
+scores with the previous version. If the average score drops more than 5%, the change
+is not merged.
 
 ```bash
 pnpm eval:regression --agent backend-dev --version v3 --baseline v2
-# Output: tabla comparativa de scores por dimensión y tipo de proyecto
+# Output: comparative score table by dimension and project type
 ```
 
-### Distribución de tests en CI
+### Test Distribution in CI
 
 ```
-Cada commit   → Nivel 1 + Nivel 2 (segundos, gratis)
-Cada PR       → Nivel 1 + Nivel 2 + Nivel 3 en 2 fixtures
-              + smoke-eval (Nivel 4 reducido: 1–2 briefs) si el PR toca un .prompt.ts
-Cada release  → Todos los niveles + regresión completa
+Each commit   → Level 1 + Level 2 (seconds, free)
+Each PR       → Level 1 + Level 2 + Level 3 on 2 fixtures
+              + smoke-eval (reduced Level 4: 1–2 briefs) if the PR touches a .prompt.ts
+Each release  → All levels + full regression
 ```
 
-El smoke-eval en PR existe porque los tests Nivel 1/2 usan outputs mockeados:
-testean el harness, no la calidad del agente. Sin él, una regresión de calidad
-por un cambio de prompt pasa desapercibida hasta el release. Solo corre cuando el
-diff toca un archivo `.prompt.ts`, para no gastar tokens de gusto.
+The smoke-eval on PR exists because Level 1/2 tests use mocked outputs:
+they test the harness, not agent quality. Without it, a quality regression
+from a prompt change goes unnoticed until release. It only runs when the
+diff touches a `.prompt.ts` file, to avoid burning tokens unnecessarily.
 
 ---
 
-## 8. MÉTRICAS DE FUNCIONAMIENTO
+## 8. PERFORMANCE METRICS
 
-### Métricas de producto
+### Product Metrics
 
-| Métrica               | Definición                                          | Target v1 | Target v2 |
+| Metric                | Definition                                          | Target v1 | Target v2 |
 |-----------------------|-----------------------------------------------------|-----------|-----------|
-| Build success rate    | % de proyectos que compilan sin errores             | 80%       | 92%       |
-| File completeness     | archivos presentes / archivos esperados             | > 0.85    | > 0.93    |
-| Consistency score     | referencias cruzadas válidas entre archivos         | > 0.88    | > 0.95    |
-| Time to usable        | minutos desde brief hasta proyecto que corre        | < 5 min   | < 3 min   |
+| Build success rate    | % of projects that compile without errors           | 80%       | 92%       |
+| File completeness     | files present / expected files                      | > 0.85    | > 0.93    |
+| Consistency score     | valid cross-references between files                | > 0.88    | > 0.95    |
+| Time to usable        | minutes from brief to a running project             | < 5 min   | < 3 min   |
 
-### Métricas de sistema
+### System Metrics
 
-| Métrica               | Definición                                          | Target    |
+| Metric                | Definition                                          | Target    |
 |-----------------------|-----------------------------------------------------|-----------|
-| Cost per run          | USD por run en nivel scaffold                       | < $0.50   |
-| Agent success rate    | % agentes que completan sin retry                   | > 95%     |
-| Review rejection rate | % outputs rechazados por Tech Lead                  | (monitor) |
-| p95 latency/agente    | percentil 95 de tiempo por agente                   | < 15s     |
+| Cost per run          | USD per run at scaffold level                       | < $0.50   |
+| Agent success rate    | % of agents that complete without retry             | > 95%     |
+| Review rejection rate | % of outputs rejected by Tech Lead                  | (monitor) |
+| p95 latency/agent     | 95th percentile time per agent                      | < 15s     |
 
-`review_rejection_rate` no tiene target — es un indicador diagnóstico.
-Si un agente tiene > 30% de rechazos, el prompt necesita revisión urgente.
+`review_rejection_rate` has no target — it is a diagnostic indicator.
+If an agent has > 30% rejections, the prompt needs urgent revision.
 
-### Almacenamiento de métricas
+### Metrics Storage
 
-Todas las métricas van a SQLite en la tabla `agent_metrics`. El esquema se define
-con Drizzle (la SQL de abajo es la forma resultante, como referencia):
+All metrics go to SQLite in the `agent_metrics` table. The schema is defined
+with Drizzle (the SQL below is the resulting form, for reference):
 
 ```sql
 CREATE TABLE agent_metrics (
@@ -665,68 +665,68 @@ CREATE TABLE agent_metrics (
   coherence   REAL,
   completeness REAL,
   quality     REAL,
-  build_success INTEGER,  -- 0 o 1
-  rejected    INTEGER,    -- 0 o 1
+  build_success INTEGER,  -- 0 or 1
+  rejected    INTEGER,    -- 0 or 1
   created_at  TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
--- Índice para el patrón de consulta principal (evolución por agente/versión/tipo):
+-- Index for the main query pattern (evolution by agent/version/type):
 CREATE INDEX idx_agent_metrics_lookup
   ON agent_metrics (agent_id, prompt_ver, project_type);
 ```
 
-La GUI tiene una pantalla de métricas que muestra evolución por agente y versión.
+The GUI has a metrics screen showing evolution by agent and version.
 
 ---
 
-## 9. MODELO DE MEMORIA Y CONTEXTO
+## 9. MEMORY AND CONTEXT MODEL
 
-### Tres tipos de información
+### Three Types of Information
 
-**Contexto de run** — en memoria durante la ejecución, se descarta al terminar
+**Run context** — in memory during execution, discarded when done
 
-El `ExecutionContext` que pasa el Orchestrator a cada agente. Incluye el blueprint
-completo y los outputs de agentes anteriores según el grafo de dependencias.
+The `ExecutionContext` that the Orchestrator passes to each agent. Includes the full
+blueprint and the outputs of previous agents according to the dependency graph.
 
-**Contexto de proyecto** — persiste en SQLite
+**Project context** — persisted in SQLite
 
-El *registro* de runs anteriores se guarda en SQLite desde v1 (es barato). El
-*consumo* de ese historial por el Chief Architect — ej: "¿qué stack tuvo mejor
-build success rate para proyectos `api` en los últimos 30 runs?" — es aprendizaje
-acumulado sin fine-tuning, y es **trabajo de v2** (ver §20). En v1 cada run es
-independiente; solo se acumula la data para habilitarlo después.
+The *record* of previous runs is stored in SQLite from v1 (it is cheap). The
+*consumption* of that history by the Chief Architect — e.g.: "which stack had the best
+build success rate for `api` projects in the last 30 runs?" — is accumulated learning
+without fine-tuning, and is **v2 work** (see §20). In v1 each run is
+independent; data is only accumulated to enable it later.
 
-**Contexto de agente** — historial de versiones con scores
+**Agent context** — version history with scores
 
-El sistema sabe qué versión de cada agente tiene mejor rendimiento y la usa.
-Está en SQLite + los archivos `active.ts` de cada agente.
+The system knows which version of each agent performs best and uses it.
+Stored in SQLite + the `active.ts` files for each agent.
 
-### Reglas de paso de contexto
+### Context Passing Rules
 
-El paso de contexto entre agentes es deliberadamente restrictivo.
-Contexto innecesario = prompts más costosos y outputs menos focalizados.
+Context passing between agents is deliberately restrictive.
+Unnecessary context = more expensive prompts and less focused outputs.
 
 ```
-Chief Architect  → todos:            blueprint completo
-Backend TL       → Frontend Dev:     contrato de API (endpoints y tipos)
-Backend Dev      → DevOps:           comandos de build y test
-Backend Dev      → QA:               estructura de archivos esperada
-                                     (QA también revisa dependencias y endpoints
-                                      expuestos — no hay agente de seguridad en v1)
-Todos            → Tech Writer:      outputs completos
+Chief Architect  → all:              full blueprint
+Backend TL       → Frontend Dev:     API contract (endpoints and types)
+Backend Dev      → DevOps:           build and test commands
+Backend Dev      → QA:               expected file structure
+                                     (QA also reviews dependencies and exposed
+                                      endpoints — no security agent in v1)
+All              → Tech Writer:      complete outputs
 ```
 
-Si un agente necesita información que no está en su input definido,
-el diseño está mal — hay que ajustar el grafo, no agregar más contexto.
+If an agent needs information that is not in its defined input,
+the design is wrong — adjust the graph, do not add more context.
 
-**Ventana de contexto en proyectos grandes:** Tech Writer, Assembler y QA reciben
-"outputs completos", lo que en un `deliverable` grande puede exceder el context
-window. Estrategia: estos agentes reciben un MANIFIESTO (árbol de archivos +
-firmas/exports + decisiones), no el contenido literal de cada archivo, y piden el
-contenido de un archivo puntual solo cuando lo necesitan. El proyecto entero nunca
-se mete completo en un solo prompt.
+**Context window in large projects:** Tech Writer, Assembler and QA receive
+"complete outputs", which in a large `deliverable` may exceed the context
+window. Strategy: these agents receive a MANIFEST (file tree +
+signatures/exports + decisions), not the literal content of each file, and request
+the content of a specific file only when needed. The entire project is never
+stuffed into a single prompt.
 
-### Grafo de dependencias
+### Dependency Graph
 
 ```
 chief-architect ─► backend-tl  ─► backend-dev ──┐
@@ -736,397 +736,397 @@ chief-architect ─► backend-tl  ─► backend-dev ──┐
                                                 qa ─► tech-writer
 ```
 
-frontend-dev depende del CONTRATO de backend-tl (no de backend-dev), por eso
-backend-dev y frontend-dev corren en paralelo (ver §3.3). qa recibe los outputs
-de todos los devs + devops; tech-writer es el último y recibe todo.
+frontend-dev depends on the backend-tl CONTRACT (not on backend-dev), which is why
+backend-dev and frontend-dev run in parallel (see §3.3). qa receives the outputs
+of all devs + devops; tech-writer is last and receives everything.
 
 ---
 
-## 10. INFRAESTRUCTURA — MODOS DE DESPLIEGUE Y QUÉ VA EN QUÉ VERSIÓN
+## 10. INFRASTRUCTURE — DEPLOYMENT MODES AND WHAT GOES IN WHICH VERSION
 
-La regla: **una tecnología entra cuando resuelve un problema que ya existe,
-no un problema que podría existir.**
+The rule: **a technology is added when it solves a problem that already exists,
+not a problem that might exist.**
 
-### Dos modos de despliegue
+### Two Deployment Modes
 
-OrchFlow corre en dos modos sobre el mismo `core`. La distribución principal
-(CLI + GUI) usa **embedded**; el modo **server** es opcional para uso avanzado.
+OrchFlow runs in two modes on the same `core`. The primary distribution
+(CLI + GUI) uses **embedded**; **server** mode is optional for advanced use.
 
-| Aspecto        | Embedded (default)                  | Server (opcional)                    |
-|----------------|-------------------------------------|--------------------------------------|
-| Cómo arranca   | CLI / app de escritorio             | `docker compose up` o `orchflow serve` |
-| Engine         | in-process (en el proceso/sidecar)  | API Fastify + worker                 |
-| Cola de jobs   | en memoria (1 run a la vez por defecto) | Bull + Redis                     |
-| Streaming      | eventos IPC → UI                    | SSE                                  |
-| Dependencias   | Docker solo si el nivel lo pide (§11) | Docker + Redis                     |
-| Para qué       | "download & run", uso personal      | uso repetido, multi-job, futura nube |
+| Aspect         | Embedded (default)                  | Server (optional)                      |
+|----------------|-------------------------------------|----------------------------------------|
+| How it starts  | CLI / desktop app                   | `docker compose up` or `orchflow serve` |
+| Engine         | in-process (in the process/sidecar) | Fastify API + worker                   |
+| Job queue      | in-memory (1 run at a time by default) | Bull + Redis                        |
+| Streaming      | IPC events → UI                     | SSE                                    |
+| Dependencies   | Docker only if the level requires it (§11) | Docker + Redis                   |
+| Use case       | "download & run", personal use      | repeated use, multi-job, future cloud  |
 
-Consecuencia clave: **Redis deja de ser requisito de v1.** Un usuario que instala
-la app o el CLI no necesita levantar nada para generar un proyecto.
+Key consequence: **Redis is no longer a v1 requirement.** A user who installs
+the app or the CLI does not need to start anything to generate a project.
 
-### v1 — Lo que se construye ahora
+### v1 — What Is Built Now
 
-| Tecnología     | Por qué en v1                                        |
+| Technology     | Why in v1                                            |
 |----------------|------------------------------------------------------|
-| Docker         | Sandbox de validación — solo cuando el nivel lo pide (§11) |
-| Cola en memoria| Suficiente para el modo embedded single-user        |
-| SQLite         | Persistencia de runs y métricas — zero config        |
-| Tauri          | App de escritorio cross-platform con footprint mínimo (§15) |
-| oclif          | CLI cliente fino sobre core                          |
-| Error logging  | Observabilidad básica — saber qué falla y por qué    |
-| GitHub Actions | CI/CD del propio OrchFlow                            |
-| (server opc.)  | Fastify + Bull + Redis + SSE — solo si se usa modo server |
+| Docker         | Validation sandbox — only when the level requires it (§11) |
+| In-memory queue| Sufficient for single-user embedded mode             |
+| SQLite         | Run and metrics persistence — zero config            |
+| Tauri          | Cross-platform desktop app with minimal footprint (§15) |
+| oclif          | Thin CLI client over core                            |
+| Error logging  | Basic observability — know what fails and why        |
+| GitHub Actions | CI/CD for OrchFlow itself                            |
+| (server opt.)  | Fastify + Bull + Redis + SSE — only if server mode is used |
 
-### v2 — Cuando OrchFlow tenga usuarios reales
+### v2 — When OrchFlow Has Real Users
 
-| Tecnología     | Trigger para incorporarla                            |
+| Technology     | Trigger for adoption                                 |
 |----------------|------------------------------------------------------|
-| Redis caching  | Cuando runs similares se repitan frecuentemente      |
-| WebSockets     | Si SSE muestra limitaciones en producción            |
-| S3             | Cuando los ZIPs necesiten storage persistente        |
-| PostgreSQL     | Cuando SQLite muestre contención con múltiples users |
-| RabbitMQ/SQS   | Cuando haya colas de trabajo entre múltiples workers |
+| Redis caching  | When similar runs repeat frequently                  |
+| WebSockets     | If SSE shows limitations in production               |
+| S3             | When ZIPs need persistent storage                    |
+| PostgreSQL     | When SQLite shows contention with multiple users     |
+| RabbitMQ/SQS   | When there are work queues across multiple workers   |
 
-### v3 — Si OrchFlow se convierte en plataforma
+### v3 — If OrchFlow Becomes a Platform
 
-| Tecnología     | Trigger para incorporarla                            |
+| Technology     | Trigger for adoption                                 |
 |----------------|------------------------------------------------------|
-| Kubernetes     | Cuando necesites escalar horizontalmente             |
-| Load balancer  | Cuando haya tráfico real que distribuir              |
-| Sharding       | Cuando la DB tenga millones de runs                  |
-| Encryption     | Cuando haya datos de usuarios en producción          |
-| CDN            | Cuando la GUI web (hosted) tenga usuarios globales   |
+| Kubernetes     | When horizontal scaling is needed                    |
+| Load balancer  | When there is real traffic to distribute             |
+| Sharding       | When the DB has millions of runs                     |
+| Encryption     | When there is user data in production                |
+| CDN            | When the hosted GUI web has global users             |
 
-### Nunca en OrchFlow (con justificación)
+### Never in OrchFlow (with Justification)
 
-| Tecnología  | Por qué no                                           |
+| Technology  | Why not                                              |
 |-------------|------------------------------------------------------|
-| FTP         | No hay transferencia de archivos legacy              |
-| DynamoDB    | SQLite → PostgreSQL es el camino natural, no NoSQL   |
-| TensorFlow  | Los modelos de evaluación son LLMs externos, no ML propio |
+| FTP         | No legacy file transfer                              |
+| DynamoDB    | SQLite → PostgreSQL is the natural path, not NoSQL   |
+| TensorFlow  | Evaluation models are external LLMs, not custom ML   |
 
 ---
 
-## 11. SANDBOX — VALIDACIÓN ATADA AL NIVEL DE OUTPUT
+## 11. SANDBOX — VALIDATION TIED TO OUTPUT LEVEL
 
-El sandbox Docker no es todo-o-nada: se usa **solo cuando el nivel de output lo
-justifica**. Así un usuario que quiere un `blueprint` o `scaffold` no necesita
-Docker instalado, y el aislamiento real se paga solo para outputs deploy-ready.
+The Docker sandbox is not all-or-nothing: it is used **only when the output level
+justifies it**. This way a user who wants a `blueprint` or `scaffold` does not need
+Docker installed, and real isolation is only paid for deploy-ready outputs.
 
-| Nivel         | Validación                          | ¿Docker? |
-|---------------|-------------------------------------|----------|
-| `blueprint`   | ninguna (solo docs/arquitectura)    | No       |
-| `scaffold`    | liviana: build en subproceso aislado del host | No |
-| `mvp`         | real: install + build + tests       | **Sí**   |
-| `deliverable` | real + artefactos deploy-ready (Dockerfile, healthcheck, env, CI pasa) | **Sí** |
+| Level         | Validation                               | Docker?  |
+|---------------|------------------------------------------|----------|
+| `blueprint`   | none (docs/architecture only)            | No       |
+| `scaffold`    | lightweight: build in a subprocess isolated from the host | No |
+| `mvp`         | real: install + build + tests            | **Yes**  |
+| `deliverable` | real + deploy-ready artifacts (Dockerfile, healthcheck, env, CI passes) | **Yes** |
 
-La app/CLI **detecta Docker** al arrancar. Si un usuario pide `mvp`/`deliverable`
-y falta Docker, lo guía a instalarlo (no falla en silencio ni degrada sin avisar).
-El modo server siempre usa Docker.
+The app/CLI **detects Docker** at startup. If a user requests `mvp`/`deliverable`
+and Docker is missing, it guides them to install it (does not fail silently or degrade without warning).
+Server mode always uses Docker.
 
-> "Listo para deploy" (estándar de industria) no es solo que compile: el agente
-> `devops` produce Dockerfile, healthcheck, variables de entorno y CI, y la
-> validación de `deliverable` los chequea — no solo `npm run build`.
+> "Deploy-ready" (industry standard) is not just that it compiles: the `devops`
+> agent produces Dockerfile, healthcheck, environment variables and CI, and the
+> `deliverable` validation checks them — not just `npm run build`.
 
-### Detalle del sandbox Docker (niveles mvp/deliverable)
+### Docker Sandbox Details (mvp/deliverable levels)
 
 ```
-Imagen base: orchflow/sandbox:latest
+Base image: orchflow/sandbox:latest
   - Node.js 20 + pnpm
   - Python 3.12
   - Git
   - ESLint, Prettier, Ruff
-  - Mirror de paquetes (pnpm store / Verdaccio) precargado en la imagen
+  - Package mirror (pnpm store / Verdaccio) preloaded in the image
 
-Política de red:
-  - Fase de generación (los agentes escriben archivos): SIN red.
-  - Fase de validación (install/build): red restringida SOLO al registry de
-    paquetes — idealmente install offline contra el mirror precargado en la imagen.
-  - El código generado nunca se ejecuta con red abierta hacia internet.
+Network policy:
+  - Generation phase (agents write files): NO network.
+  - Validation phase (install/build): network restricted ONLY to the
+    package registry — ideally offline install against the mirror preloaded in the image.
+  - Generated code is never run with open internet access.
 
 Lifecycle:
   1. docker run --rm --network none -v /tmp/run-{id}:/workspace orchflow/sandbox
-  2. Los agentes escriben archivos en /workspace (sin red)
-  3. Para validar, QA corre el install contra el mirror local
-     (o se habilita una red egress-only al registry): npm install
-  4. QA ejecuta build y lint (sin red): npm run build, npm run lint
-  5. Si QA pasa: zip /workspace → entregado al usuario
-  6. Contenedor destruido automáticamente (--rm)
+  2. Agents write files to /workspace (no network)
+  3. To validate, QA runs install against the local mirror
+     (or an egress-only network to the registry is enabled): npm install
+  4. QA runs build and lint (no network): npm run build, npm run lint
+  5. If QA passes: zip /workspace → delivered to the user
+  6. Container destroyed automatically (--rm)
 ```
 
-Por qué el sandbox es central:
-- Aislamiento: un proyecto generado no puede afectar el sistema host
-- Validación real: el QA Agent puede ejecutar el código y ver si compila
-- Reproducibilidad: mismo entorno siempre
-- Seguridad: código generado por LLM no corre con privilegios del host
+Why the sandbox is central:
+- Isolation: a generated project cannot affect the host system
+- Real validation: the QA Agent can execute the code and see if it compiles
+- Reproducibility: same environment every time
+- Security: LLM-generated code does not run with host privileges
 
 ---
 
-## 12. SISTEMA DE REVISIÓN
+## 12. REVIEW SYSTEM
 
-El ciclo de revisión es lo que diferencia OrchFlow de un generador simple:
+The review cycle is what differentiates OrchFlow from a simple generator:
 
 ```
-Developer genera output
+Developer generates output
         │
         ▼
-Tech Lead revisa:
-  ✓ ¿Cumple el blueprint?
-  ✓ ¿El código es coherente internamente?
-  ✓ ¿Faltan archivos críticos?
+Tech Lead reviews:
+  ✓ Does it fulfill the blueprint?
+  ✓ Is the code internally coherent?
+  ✓ Are critical files missing?
         │
    ┌────┴────┐
-APRUEBA   RECHAZA (con feedback específico)
+APPROVES  REJECTS (with specific feedback)
    │            │
    ▼            ▼
-Continúa   Developer re-genera (máx. 2 intentos)
+Continues   Developer re-generates (max. 2 attempts)
                 │
-                ▼ (si falla 2 veces)
-           Chief Architect notificado
-           → simplifica el scope de ese módulo
-           → el run termina con status: 'partial' y el qaReport lista
-             explícitamente qué se degradó (visible para el usuario en UI/CLI).
-             Nunca se entrega un scope reducido en silencio.
+                ▼ (if it fails twice)
+           Chief Architect notified
+           → simplifies the scope of that module
+           → the run ends with status: 'partial' and the qaReport explicitly
+             lists what was degraded (visible to the user in UI/CLI).
+             A reduced scope is never delivered silently.
 ```
 
-El QA Agent hace revisión cruzada al final:
+The QA Agent performs cross-review at the end:
 
 ```
-QA verifica:
-  ✓ package.json tiene los scripts que usa el Dockerfile
-  ✓ Las importaciones del código existen en las dependencias
-  ✓ Las variables de entorno en el código están en .env.example
-  ✓ Los endpoints del backend coinciden con las llamadas del frontend
-  ✓ npm run build no falla en el sandbox
+QA verifies:
+  ✓ package.json has the scripts used by the Dockerfile
+  ✓ Code imports exist in the dependencies
+  ✓ Environment variables in the code are in .env.example
+  ✓ Backend endpoints match frontend calls
+  ✓ npm run build does not fail in the sandbox
 ```
 
 ---
 
-## 13. CLI + APP DE ESCRITORIO — INTERFAZ Y PARIDAD
+## 13. CLI + DESKTOP APP — INTERFACE AND PARITY
 
-CLI y GUI son **dos clientes finos sobre `packages/core/src/actions/`**. Cada
-comando del CLI tiene su equivalente exacto en la GUI y viceversa — la paridad es
-por construcción, no una lista que hay que mantener sincronizada a mano.
+CLI and GUI are **two thin clients over `packages/core/src/actions/`**. Each
+CLI command has its exact equivalent in the GUI and vice versa — parity is
+by construction, not a list that must be kept manually in sync.
 
-| Acción de `core` | Comando CLI                     | En la GUI                       |
+| `core` Action    | CLI Command                     | In the GUI                      |
 |------------------|---------------------------------|---------------------------------|
-| `new`            | `orchflow new "..."`            | Pantalla Input → "Generate"     |
-| `plan`           | `orchflow plan "..."`           | Pantalla Input → "Plan first"   |
-| `history`        | `orchflow history`              | Pantalla Historial              |
-| `show`           | `orchflow show <runId>`         | Detalle de run                  |
-| `metrics`        | `orchflow metrics --agent ...`  | Pantalla Métricas               |
-| `evalCompare`    | `orchflow eval compare ...`     | Pantalla Métricas → comparar    |
+| `new`            | `orchflow new "..."`            | Input screen → "Generate"       |
+| `plan`           | `orchflow plan "..."`           | Input screen → "Plan first"     |
+| `history`        | `orchflow history`              | History screen                  |
+| `show`           | `orchflow show <runId>`         | Run detail                      |
+| `metrics`        | `orchflow metrics --agent ...`  | Metrics screen                  |
+| `evalCompare`    | `orchflow eval compare ...`     | Metrics screen → compare        |
 
 ```bash
-# Crear un nuevo proyecto
-orchflow new "API REST para gestión de tareas con auth JWT y PostgreSQL"
+# Create a new project
+orchflow new "REST API for task management with JWT auth and PostgreSQL"
 
-# Con opciones
+# With options
 orchflow new "..." --level mvp --output ./my-project --stack fastapi
 
-# Ver el plan antes de ejecutar (sin gastar tokens de generación)
+# See the plan before executing (without spending generation tokens)
 orchflow plan "..."
 
-# Listar runs anteriores / ver detalle
+# List previous runs / view detail
 orchflow history
 orchflow show <runId>
 
-# Métricas y comparación de versiones de un agente
+# Metrics and agent version comparison
 orchflow metrics --agent backend-dev
 orchflow eval compare --agent backend-dev --baseline v1 --candidate v2
 
-# Abrir la app de escritorio (si está instalada)
+# Open the desktop app (if installed)
 orchflow ui
 ```
 
-La app de escritorio (Tauri) es la misma funcionalidad con interfaz visual, para
-quien no usa terminal. Detalle de empaquetado e instaladores en §15.
+The desktop app (Tauri) is the same functionality with a visual interface, for
+those who do not use the terminal. Packaging and installer details in §15.
 
 ---
 
-## 14. GUI — PANTALLAS
+## 14. GUI — SCREENS
 
-> Estas pantallas son la app de escritorio (Tauri). En modo server, las mismas
-> vistas se sirven por web. La data llega por IPC (embedded) o SSE (server).
+> These screens are the desktop app (Tauri). In server mode, the same
+> views are served over the web. Data arrives via IPC (embedded) or SSE (server).
 
-### Pantalla 1: Input
-- Textarea para el brief
-- Selector de output level con descripción de cada nivel
-- Estimación de tiempo y costo: heurística por nivel al elegir, recalculada con
-  precisión al pulsar "Plan first" (no se llama al LLM en cada tecla)
-- Botón "Plan first" (muestra el blueprint sin ejecutar) y "Generate"
+### Screen 1: Input
+- Textarea for the brief
+- Output level selector with description of each level
+- Time and cost estimate: heuristic per level when selected, recalculated with
+  precision when "Plan first" is pressed (LLM is not called on every keystroke)
+- "Plan first" button (shows the blueprint without executing) and "Generate"
 
-### Pantalla 2: Ejecución en vivo
-- Timeline de agentes con estado (pending / running / reviewing / done / failed)
-- Log en tiempo real (IPC en embedded, SSE en server) — estilo terminal
-- Preview de archivos generados apareciendo en tiempo real
-- Métricas live: tokens usados, costo, tiempo transcurrido
+### Screen 2: Live Execution
+- Agent timeline with status (pending / running / reviewing / done / failed)
+- Real-time log (IPC in embedded, SSE in server) — terminal style
+- Preview of generated files appearing in real time
+- Live metrics: tokens used, cost, elapsed time
 
-### Pantalla 3: Resultado
-- Árbol de archivos del proyecto generado
-- Preview de archivos con syntax highlighting
-- Reporte de QA (checks pasados / fallados, scores)
-- Botón de descarga ZIP
-- Botón "Open in VS Code"
+### Screen 3: Result
+- File tree of the generated project
+- File preview with syntax highlighting
+- QA report (passed / failed checks, scores)
+- Download ZIP button
+- "Open in VS Code" button
 
-### Pantalla 4: Historial
-- Lista de runs anteriores con métricas clave
-- Comparación de dos runs (diff de archivos generados)
+### Screen 4: History
+- List of previous runs with key metrics
+- Comparison of two runs (diff of generated files)
 
-### Pantalla 5: Métricas del sistema
-- Build success rate por agente y versión (gráfico de línea)
-- Scores de calidad por dimensión
-- Costo por run en el tiempo
-- Review rejection rate por agente
+### Screen 5: System Metrics
+- Build success rate by agent and version (line chart)
+- Quality scores by dimension
+- Cost per run over time
+- Review rejection rate by agent
 
 ---
 
-## 15. DISTRIBUCIÓN E INSTALADORES
+## 15. DISTRIBUTION AND INSTALLERS
 
-OrchFlow se distribuye por dos canales, ambos sobre el mismo `core`:
+OrchFlow is distributed through two channels, both on the same `core`:
 
-**CLI** — vía npm
+**CLI** — via npm
 ```bash
 npm install -g orchflow      # global
-npx orchflow new "..."       # sin instalar
+npx orchflow new "..."       # without installing
 ```
 
-**App de escritorio** — instaladores nativos con Tauri (footprint mínimo):
+**Desktop app** — native installers with Tauri (minimal footprint):
 
-| OS      | Formato                | Tamaño aprox. |
+| OS      | Format                 | Approx. size  |
 |---------|------------------------|---------------|
 | macOS   | `.dmg` (universal)     | ~6–10 MB      |
 | Windows | `.msi` / `.exe` (NSIS) | ~6–10 MB      |
 | Linux   | `.AppImage` + `.deb`   | ~6–10 MB      |
 
-Por qué Tauri y no Electron:
-- Instaladores ~10× más chicos (webview del sistema vs Chromium embebido)
-- Menos RAM en ejecución
-- Alineado con el principio de optimizar espacio y footprint (§16)
+Why Tauri and not Electron:
+- Installers ~10× smaller (system webview vs embedded Chromium)
+- Less RAM at runtime
+- Aligned with the principle of optimizing space and footprint (§16)
 
-Costo: el `core` (Node/TS) corre como **sidecar** lanzado por el shell Rust; la
-comunicación shell↔sidecar es por IPC. Es plomería de una sola vez.
+Cost: the `core` (Node/TS) runs as a **sidecar** launched by the Rust shell;
+shell↔sidecar communication is via IPC. It is a one-time plumbing task.
 
-**Build de releases:** GitHub Actions con matriz (macos / windows / ubuntu) genera
-los tres instaladores + el paquete npm en cada tag. Binarios firmados donde aplique.
-
----
-
-## 16. ECONOMÍA DE TOKENS
-
-Principio rector del proyecto: **minimizar el consumo de tokens y de espacio sin
-sacrificar estándares de industria ni el objetivo deploy-ready.** Reglas concretas:
-
-| Regla | Dónde aplica |
-|-------|--------------|
-| Paso de contexto restrictivo: cada agente recibe solo su input definido | §9 |
-| Manifiesto en vez de contenido completo para Tech Writer / QA / Assembler | §9 |
-| **Prompt caching** de Anthropic: el system prompt de cada agente es estable y se cachea entre llamadas y runs | core/agents |
-| Menos agentes = menos tokens: la capa Tech Lead se incorpora solo si paga su costo | §2 |
-| Correr solo el nivel de output pedido — nunca generar trabajo extra | §1 |
-| Checkpointing: un retry no re-ejecuta agentes ya exitosos | §3.3 |
-| Sandbox/Docker solo cuando el nivel lo exige | §11 |
-| Scoring determinista (build/parser) en vez de juez LLM donde se pueda | §6 |
-
-**Medición:** `input_tokens` y `output_tokens` ya se registran por agente en
-`agent_metrics` (§8). El target `cost per run` (§8) es el indicador que vigila que
-estas reglas funcionen; si sube, alguna regla se está violando.
-
-> Prompt caching es la palanca de mayor impacto: los system prompts de los agentes
-> son largos y estables, así que cachearlos recorta el costo de input drásticamente
-> en runs repetidos. Es lo primero a implementar al integrar la Claude API.
+**Release builds:** GitHub Actions with a matrix (macos / windows / ubuntu) generates
+the three installers + the npm package on each tag. Signed binaries where applicable.
 
 ---
 
-## 17. FASES DE IMPLEMENTACIÓN
+## 16. TOKEN ECONOMY
 
-### Fase 0 — Fundaciones (semana 1)
-**Objetivo**: Monorepo funcionando, tipos definidos, primer agente real
+Guiding principle of the project: **minimize token and space consumption without
+sacrificing industry standards or the deploy-ready goal.** Concrete rules:
 
-- [ ] Setup monorepo con pnpm workspaces + TypeScript
-- [ ] `packages/core/src/types/`: todos los contratos de datos
-- [ ] `packages/core/src/agents/chief-architect/`: evaluación → blueprint
-- [ ] `packages/core/src/agents/backend-dev/`: blueprint → archivos reales
-- [ ] Tests de nivel 1 y 2 para ambos agentes
-- [ ] Test de integración: brief → archivos en disco
-- [ ] Dockerfiles base
+| Rule | Where it applies |
+|------|-----------------|
+| Restrictive context passing: each agent receives only its defined input | §9 |
+| Manifest instead of full content for Tech Writer / QA / Assembler | §9 |
+| **Anthropic prompt caching**: each agent's system prompt is stable and cached between calls and runs | core/agents |
+| Fewer agents = fewer tokens: the Tech Lead layer is only added if it justifies its cost | §2 |
+| Run only the requested output level — never generate extra work | §1 |
+| Checkpointing: a retry does not re-execute already-successful agents | §3.3 |
+| Sandbox/Docker only when the level requires it | §11 |
+| Deterministic scoring (build/parser) instead of LLM judge where possible | §6 |
 
-**Gate**: `pnpm test` pasa Y hay archivos reales en `/tmp/orchflow-test/`
+**Measurement:** `input_tokens` and `output_tokens` are already recorded per agent in
+`agent_metrics` (§8). The `cost per run` target (§8) is the indicator that monitors
+whether these rules are working; if it rises, some rule is being violated.
 
-### Fase 1 — Equipo completo (semana 2–3)
-**Objetivo**: Pipeline sin Tech Leads (Architect → Devs → QA → Writer), sin revisiones
+> Prompt caching is the highest-impact lever: agent system prompts are long and stable,
+> so caching them drastically cuts input costs on repeated runs. It is the first thing
+> to implement when integrating the Claude API.
+
+---
+
+## 17. IMPLEMENTATION PHASES
+
+### Phase 0 — Foundations (week 1)
+**Goal**: Working monorepo, defined types, first real agent
+
+- [ ] Set up monorepo with pnpm workspaces + TypeScript
+- [ ] `packages/core/src/types/`: all data contracts
+- [ ] `packages/core/src/agents/chief-architect/`: evaluation → blueprint
+- [ ] `packages/core/src/agents/backend-dev/`: blueprint → real files
+- [ ] Level 1 and 2 tests for both agents
+- [ ] Integration test: brief → files on disk
+- [ ] Base Dockerfiles
+
+**Gate**: `pnpm test` passes AND real files exist in `/tmp/orchflow-test/`
+
+### Phase 1 — Full Team (weeks 2–3)
+**Goal**: Pipeline without Tech Leads (Architect → Devs → QA → Writer), no reviews
 
 - [ ] Frontend Developer agent
 - [ ] DevOps (CI/CD + Infra) agent
 - [ ] Tech Writer agent
-- [ ] Assembler: consolida archivos sin conflictos
-- [ ] Output ZIP funcional
-- [ ] Sistema de métricas básico (latencia, tokens, costo)
-- [ ] Prompt caching de los system prompts (§16) desde el primer agente
+- [ ] Assembler: consolidates files without conflicts
+- [ ] Functional ZIP output
+- [ ] Basic metrics system (latency, tokens, cost)
+- [ ] Prompt caching of system prompts (§16) from the first agent
 
-Los Tech Leads NO se implementan aún (ver nota de diseño §2): se agregan en una
-iteración posterior solo si las métricas justifican su costo en tokens/latencia.
+Tech Leads are NOT implemented yet (see design note §2): they are added in a
+later iteration only if metrics justify their cost in tokens/latency.
 
-**Gate**: ZIP generado hace `npm install && npm run build` sin errores
+**Gate**: Generated ZIP runs `npm install && npm run build` without errors
 
-### Fase 2 — Revisiones y QA (semana 4)
-**Objetivo**: Sistema de revisión cruzada funcionando
+### Phase 2 — Reviews and QA (week 4)
+**Goal**: Working cross-review system
 
 - [ ] QA Reviewer agent
-- [ ] Ciclo de revisión Developer → QA → re-trabajo (máx. 2 intentos)
-- [ ] Sandbox Docker para validación real (niveles mvp/deliverable, §11)
-- [ ] QA ejecuta build/lint en el sandbox
-- [ ] Chief Architect maneja rechazos (degradación a `partial` visible)
-- [ ] Scoring: deterministas (build/parser) + LLM-as-a-Judge solo para `quality`
-- [ ] Métricas de calidad guardadas en SQLite
-- [ ] (opcional) capa Tech Lead, si se decide medir su impacto
+- [ ] Review cycle Developer → QA → rework (max. 2 attempts)
+- [ ] Docker sandbox for real validation (mvp/deliverable levels, §11)
+- [ ] QA runs build/lint in the sandbox
+- [ ] Chief Architect handles rejections (degradation to `partial` visible to user)
+- [ ] Scoring: deterministic (build/parser) + LLM-as-a-Judge only for `quality`
+- [ ] Quality metrics saved in SQLite
+- [ ] (optional) Tech Lead layer, if its impact is to be measured
 
-**Gate**: QA detecta y reporta inconsistencias en proyecto con errores plantados
+**Gate**: QA detects and reports inconsistencies in a project with planted errors
 
-### Fase 3 — CLI + App de escritorio (semana 5–6)
-**Objetivo**: Las dos interfaces sobre `core/actions`, en modo embedded
+### Phase 3 — CLI + Desktop App (weeks 5–6)
+**Goal**: Both interfaces over `core/actions`, in embedded mode
 
-- [ ] `packages/core/src/actions/`: API interna (new, plan, history, show, metrics, evalCompare)
-- [ ] `packages/cli` (oclif): cliente fino sobre actions
-- [ ] `packages/ui` (React): componentes de las pantallas (§14)
-- [ ] `apps/desktop` (Tauri): shell + webview + `core` como sidecar; streaming por IPC
-- [ ] Detección de Docker + guía cuando el nivel lo requiere (§11)
-- [ ] Pantalla de métricas del sistema
-- [ ] (opcional) `packages/server`: modo server con Fastify + Bull + Redis + SSE
+- [ ] `packages/core/src/actions/`: internal API (new, plan, history, show, metrics, evalCompare)
+- [ ] `packages/cli` (oclif): thin client over actions
+- [ ] `packages/ui` (React): screen components (§14)
+- [ ] `apps/desktop` (Tauri): shell + webview + `core` as sidecar; streaming via IPC
+- [ ] Docker detection + guidance when the level requires it (§11)
+- [ ] System metrics screen
+- [ ] (optional) `packages/server`: server mode with Fastify + Bull + Redis + SSE
 
-**Gate (paridad)**: el mismo run se puede disparar por CLI y por la app, produce el
-mismo output, y `npx orchflow new "..."` genera un ZIP válido sin levantar Redis.
+**Gate (parity)**: the same run can be triggered via CLI and via the app, produces the
+same output, and `npx orchflow new "..."` generates a valid ZIP without starting Redis.
 
-### Fase 4 — Niveles de output (semana 7)
-**Objetivo**: Los 4 niveles funcionando correctamente
+### Phase 4 — Output Levels (week 7)
+**Goal**: All 4 levels working correctly
 
-- [ ] `blueprint`: solo arquitectura y docs
-- [ ] `scaffold`: código base
+- [ ] `blueprint`: architecture and docs only
+- [ ] `scaffold`: base code
 - [ ] `mvp`: auth + DB + tests
-- [ ] `deliverable`: todo + validaciones + error handling
-- [ ] Suite de tests por nivel
+- [ ] `deliverable`: everything + validations + error handling
+- [ ] Test suite per level
 
-**Gate**: Los 4 niveles producen outputs distintos verificados por `pnpm test:levels`
+**Gate**: All 4 levels produce distinct outputs verified by `pnpm test:levels`
 
-### Fase 5 — Evolución y open source (semana 8)
-**Objetivo**: Sistema de mejora continua funcionando + listo para publicar
+### Phase 5 — Evolution and Open Source (week 8)
+**Goal**: Working continuous improvement system + ready to publish
 
-- [ ] Benchmark set de 10 briefs de referencia
-- [ ] Comando `eval:regression` funcionando
-- [ ] Experimentos A/B entre versiones de prompts
-- [ ] README excelente (generado con OrchFlow)
-- [ ] Documentación para agregar un nuevo agente
-- [ ] `npm install -g orchflow` funciona
-- [ ] Instaladores Tauri (.dmg / .msi / .AppImage+.deb) vía GitHub Actions matriz (§15)
+- [ ] Benchmark set of 10 reference briefs
+- [ ] Working `eval:regression` command
+- [ ] A/B experiments between prompt versions
+- [ ] Excellent README (generated with OrchFlow)
+- [ ] Documentation for adding a new agent
+- [ ] `npm install -g orchflow` works
+- [ ] Tauri installers (.dmg / .msi / .AppImage+.deb) via GitHub Actions matrix (§15)
 
-**Gate**: El sistema de evolución rechaza automáticamente un prompt peor y promueve
-uno mejor sobre el benchmark set, con criterio estadístico (Gate 5 → release, §5).
+**Gate**: The evolution system automatically rejects a worse prompt and promotes
+a better one over the benchmark set, with a statistical criterion (Gate 5 → release, §5).
 
 ---
 
-## 18. ESTRUCTURA PARA CONTRIBUCIÓN CONTINUA
+## 18. STRUCTURE FOR CONTINUOUS CONTRIBUTION
 
-### Convención de commits
+### Commit Convention
 
 ```
 feat(agents): add qa reviewer v1
@@ -1138,106 +1138,106 @@ refactor(core): extract context builder to separate module
 docs(adr): add ADR-005 for rate limiting strategy
 ```
 
-Las categorías `prompt` y `eval` son específicas de OrchFlow.
-Hacen el historial de evolución de agentes legible de un vistazo.
+The `prompt` and `eval` categories are OrchFlow-specific.
+They make the agent evolution history readable at a glance.
 
-### ADRs obligatorios
+### Mandatory ADRs
 
-Escribir un ADR cuando:
-- El cambio afecta más de un paquete del monorepo
-- Se cambia una interfaz definida en AGENTS.md
-- Se agrega una tecnología nueva al stack
-- Se toma una decisión que podría ser cuestionada en 3 meses
+Write an ADR when:
+- The change affects more than one package in the monorepo
+- An interface defined in AGENTS.md is changed
+- A new technology is added to the stack
+- A decision is made that could be questioned in 3 months
 
-No se necesita ADR para:
-- Cambios internos a un paquete
-- Mejoras de prompts (van en el CHANGELOG del agente)
-- Fixes de bugs
+An ADR is not needed for:
+- Internal changes to a package
+- Prompt improvements (they go in the agent's CHANGELOG)
+- Bug fixes
 
-### CHANGELOG por agente
+### Agent CHANGELOG
 
 ```
 packages/core/src/agents/backend-dev/
-  CHANGELOG.md    ← historial de versiones con scores
+  CHANGELOG.md    ← version history with scores
   v1.prompt.ts
   v2.prompt.ts
-  active.ts       ← apunta a la versión activa
+  active.ts       ← points to the active version
 ```
 
-### Para retomar el proyecto después de una pausa
+### To Resume the Project After a Break
 
-1. Leer este documento (MASTER_PLAN.md)
-2. Ver en qué fase está el proyecto: `git log --oneline -20`
-3. Revisar el CHANGELOG de cada agente para ver dónde quedó la evolución
-4. Correr `pnpm test` para confirmar el estado actual
-5. Continuar desde el gate de la fase actual
-
----
-
-## 19. DECISIONES TÉCNICAS CLAVE
-
-| Decisión | Elección | Razón |
-|----------|----------|-------|
-| LLM provider | Anthropic Claude | Mejor instruction following para JSON estructurado |
-| Distribución | CLI (npm) + app de escritorio | "Download & run" para devs y no-devs, con paridad |
-| Shell de la GUI | Tauri | Instaladores chicos, footprint mínimo (vs Electron) |
-| Despliegue default | Embedded (sin Redis) | "Download & run" sin levantar servidor |
-| Cola de jobs | En memoria (embedded) / Bull+Redis (server) | Redis solo cuando hay concurrencia real |
-| DB principal | SQLite (Drizzle) | Zero config, suficiente para v1, fácil migrar a PG |
-| Streaming | IPC (embedded) / SSE (server) | Lo más simple según el modo |
-| CLI | oclif | Production-grade, auto-help, testeable |
-| Monorepo | pnpm workspaces | Types compartidos entre paquetes sin duplicación |
-| Paridad CLI↔GUI | Ambos sobre `core/actions` | Una sola lógica, paridad por construcción |
-| Comunicación entre agentes | Orquestador (no peer-to-peer) | Debuggable, testeable, observable |
-| Selección de agentes | Dinámica (evaluador LLM) | Inteligente vs reglas hardcodeadas |
-| Costo LLM | Prompt caching desde el día 1 | System prompts estables → ahorro grande (§16) |
+1. Read this document (MASTER_PLAN.md)
+2. Check which phase the project is in: `git log --oneline -20`
+3. Review the CHANGELOG of each agent to see where evolution left off
+4. Run `pnpm test` to confirm the current state
+5. Continue from the gate of the current phase
 
 ---
 
-## 20. LO QUE ORCHFLOW NO HACE (SCOPE EXPLÍCITO)
+## 19. KEY TECHNICAL DECISIONS
 
-- **No deploya el proyecto generado** — entrega el ZIP, el deploy es tuyo
-- **No usa memoria entre proyectos** en v1 — cada run es independiente. El
-  historial SÍ se registra en SQLite, pero el Chief Architect recién lo *consume*
-  para decidir (aprendizaje acumulado) en v2 (ver §9).
-- **No genera tests con 100% de cobertura** — genera estructura y casos clave
-- **No soporta todos los stacks** en v1 — Node.js/TypeScript y Python/FastAPI
-- **No es un IDE** — genera archivos, no los edita interactivamente
-- **No tiene multi-tenancy** en v1 — single-user, self-hosted
-- **No confía en el brief como entrada segura** — el brief es texto libre y se
-  genera+ejecuta código a partir de él. El sandbox sin red mitiga la *ejecución*,
-  no impide que un brief adversario produzca contenido malicioso en el ZIP. Para
-  v1 (self-hosted, single-user) el riesgo es bajo y queda del lado del usuario.
+| Decision | Choice | Reason |
+|----------|--------|--------|
+| LLM provider | Anthropic Claude | Best instruction following for structured JSON |
+| Distribution | CLI (npm) + desktop app | "Download & run" for devs and non-devs, with parity |
+| GUI shell | Tauri | Small installers, minimal footprint (vs Electron) |
+| Default deployment | Embedded (no Redis) | "Download & run" without starting a server |
+| Job queue | In-memory (embedded) / Bull+Redis (server) | Redis only when there is real concurrency |
+| Main DB | SQLite (Drizzle) | Zero config, sufficient for v1, easy to migrate to PG |
+| Streaming | IPC (embedded) / SSE (server) | Simplest option per mode |
+| CLI | oclif | Production-grade, auto-help, testable |
+| Monorepo | pnpm workspaces | Shared types between packages without duplication |
+| CLI↔GUI parity | Both over `core/actions` | Single logic, parity by construction |
+| Agent communication | Orchestrator (not peer-to-peer) | Debuggable, testable, observable |
+| Agent selection | Dynamic (LLM evaluator) | Intelligent vs hardcoded rules |
+| LLM cost | Prompt caching from day 1 | Stable system prompts → large savings (§16) |
 
 ---
 
-## 21. INSTRUCCIONES PARA CLAUDE CODE
+## 20. WHAT ORCHFLOW DOES NOT DO (EXPLICIT SCOPE)
 
-### Orden de implementación — Fase 0
+- **Does not deploy the generated project** — delivers the ZIP, deployment is yours
+- **Does not use memory between projects** in v1 — each run is independent. History
+  IS recorded in SQLite, but the Chief Architect will only *consume* it
+  for decisions (accumulated learning) in v2 (see §9).
+- **Does not generate tests with 100% coverage** — generates structure and key cases
+- **Does not support all stacks** in v1 — Node.js/TypeScript and Python/FastAPI
+- **Is not an IDE** — generates files, does not edit them interactively
+- **Does not have multi-tenancy** in v1 — single-user, self-hosted
+- **Does not trust the brief as safe input** — the brief is free text and code is
+  generated and executed from it. The sandboxed network mitigates *execution*,
+  but does not prevent an adversarial brief from producing malicious content in the ZIP.
+  For v1 (self-hosted, single-user) the risk is low and remains with the user.
 
-1. Setup del monorepo (pnpm workspaces, TypeScript, ESLint, Prettier)
-2. `packages/core/src/types/index.ts` — todos los contratos de este documento
-3. `packages/core/src/agents/chief-architect/` — con tests nivel 1 y 2
-4. `packages/core/src/agents/backend-dev/` — con tests nivel 1 y 2
-5. `packages/core/src/__tests__/integration.test.ts` — brief → archivos en disco
-6. Dockerfiles base
+---
 
-### Principios de implementación
+## 21. INSTRUCTIONS FOR CLAUDE CODE
 
-- Cada agente es una clase que implementa la interfaz `Agent`
-- Los prompts de cada agente viven en archivos `.prompt.ts` separados del código
-- Todo tiene tipos — no usar `any`
-- Los tests son la documentación ejecutable de cada agente
-- Los errores son explícitos — no silenciar excepciones
-- Cada agente registra sus métricas (latencia, tokens, costo) en cada llamada
-- Los prompts tienen número de versión explícito desde el primer commit
+### Implementation Order — Phase 0
 
-### No hacer en Fase 0
+1. Monorepo setup (pnpm workspaces, TypeScript, ESLint, Prettier)
+2. `packages/core/src/types/index.ts` — all contracts from this document
+3. `packages/core/src/agents/chief-architect/` — with level 1 and 2 tests
+4. `packages/core/src/agents/backend-dev/` — with level 1 and 2 tests
+5. `packages/core/src/__tests__/integration.test.ts` — brief → files on disk
+6. Base Dockerfiles
 
-- No implementar CLI ni GUI
-- No implementar todos los agentes — solo chief-architect y backend-dev
-- No implementar el sandbox Docker todavía
-- No implementar métricas avanzadas — solo el registro básico
+### Implementation Principles
 
-El criterio de éxito de Fase 0 es simple y verificable:
-`pnpm test` pasa Y existe `/tmp/orchflow-test/package.json` con contenido real.
+- Each agent is a class that implements the `Agent` interface
+- Each agent's prompts live in separate `.prompt.ts` files, apart from the code
+- Everything is typed — do not use `any`
+- Tests are the executable documentation for each agent
+- Errors are explicit — do not silence exceptions
+- Each agent records its metrics (latency, tokens, cost) on every call
+- Prompts have an explicit version number from the first commit
+
+### Do Not Do in Phase 0
+
+- Do not implement CLI or GUI
+- Do not implement all agents — only chief-architect and backend-dev
+- Do not implement the Docker sandbox yet
+- Do not implement advanced metrics — only basic recording
+
+The Phase 0 success criterion is simple and verifiable:
+`pnpm test` passes AND `/tmp/orchflow-test/package.json` exists with real content.
