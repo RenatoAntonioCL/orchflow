@@ -1,8 +1,8 @@
 import type { Provider, ProjectBlueprint, GeneratedFile } from '../../types/index.js';
-import { buildBackendDevPrompt } from './v1.prompt.js';
+import { buildDevOpsPrompt } from './v1.prompt.js';
 import { parseGeneratedFiles } from '../parse-files.js';
 
-export class BackendDevAgent {
+export class DevOpsAgent {
   readonly promptVersion = 'v1';
 
   constructor(private provider: Provider) {}
@@ -11,7 +11,7 @@ export class BackendDevAgent {
     files: GeneratedFile[];
     metrics: { latencyMs: number; inputTokens: number; outputTokens: number; costUSD: number };
   }> {
-    const prompt = buildBackendDevPrompt(blueprint);
+    const prompt = buildDevOpsPrompt(blueprint);
     const start = performance.now();
     const result = await this.provider.complete(prompt);
     const latencyMs = Math.round(performance.now() - start);
